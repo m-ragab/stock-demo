@@ -27,7 +27,7 @@ router.post('/', auth, async (req, res) => {
     let product = new Product(_.pick(req.body, ['name', 'price', 'numberInStock']));
     product = await product.save();
 
-    res.send(product);
+    res.send(_.pick(product, ['_id', 'name', 'price', 'numberInStock']));
 });
 
 router.put('/:id', [auth, validateObjectId], async (req, res) => {
@@ -40,7 +40,7 @@ router.put('/:id', [auth, validateObjectId], async (req, res) => {
 
     if (!product) return res.status(404).send('The Product with the given ID was not found.');
 
-    res.send(product);
+    res.send(_.pick(product, ['_id', 'name', 'price', 'numberInStock']));
 });
 
 router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
@@ -48,7 +48,7 @@ router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
 
     if (!product) return res.status(404).send('The Product with the given ID was not found.');
 
-    res.send(product);
+    res.send(_.pick(product, ['name', 'price', 'numberInStock']));
 });
 
 
