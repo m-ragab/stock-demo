@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
     
     res
         .header('x-auth-token', token)
-        .send(_.pick(user, ['_id', 'name', 'email']));
+        .send(_.pick(user, ['_id', 'name', 'email', 'isAdmin']));
 });
 
 
