@@ -27,7 +27,7 @@ const userSchema = new Schema({
     },
     isAdmin: {
         type: Boolean,
-        required: true
+        default: false
     }
 });
 
@@ -52,7 +52,7 @@ function validateUser(user) {
         name: Joi.string().min(5).max(50).required(),
         email: Joi.string().min(5).max(255).required().email(),
         password: Joi.string().min(5).max(255).required(),
-        isAdmin: Joi.boolean().required()
+        isAdmin: Joi.boolean()
     });
 
     return schema.validate(user);
