@@ -1,26 +1,51 @@
 const Joi = require('joi');
-const mongoose = require('mongoose');
+const db = require('../data/db');
 
-const Schema = mongoose.Schema;
-
-const productSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        minlength: 5,
-        maxlength: 50
-    },
-    price: {
-        type: Number,
-        required: true
-    },
-    numberInStock: {
-        type: Number,
-        required: true
+class Product {
+    constructor(data = {}) {
+        this._id = data._id || null;
+        this.name = data.name || '';
+        this.price = data.price || 0;
+        this.numberInStock = data.numberInStock || 0;
     }
-});
 
-const Product = mongoose.model('Product', productSchema);
+    async save() {
+        if (!this._id) {
+            const created = await db.create('products', { name: this.name, price: this.price, numberInStock: this.numberInStock });
+            Object.assign(this, created);
+            return this;
+        }
+
+        const updated = await db.update('products', this._id, { name: this.name, price: this.price, numberInStock: this.numberInStock });
+        Object.assign(this, updated);
+        return this;
+    }
+
+    static async find() {
+        const items = await db.list('products');
+        return items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    static async findById(id) {
+        return await db.findById('products', id);
+    }
+
+    static async findOne(query = {}) {
+        return await db.findOne('products', query);
+    }
+
+    static async deleteMany(query = {}) {
+        return await db.deleteMany('products', query);
+    }
+
+    static async findByIdAndUpdate(id, update) {
+        return await db.update('products', id, update);
+    }
+
+    static async findByIdAndRemove(id) {
+        return await db.remove('products', id);
+    }
+}
 
 function validateProduct(product) {
     const schema = Joi.object({
@@ -32,6 +57,4 @@ function validateProduct(product) {
     return schema.validate(product);
 }
 
-
-exports.Product = Product;
-exports.validateProduct = validateProduct;
+module.exports = { Product, validateProduct };

@@ -1,5 +1,5 @@
 {
     "jwtPrivateKey": "SecureKey",
-    "db": "mongodb://localhost/db",
-    "port": "3000" 
+    "db": "data/stock.json",
+    "port": "3000"
 }

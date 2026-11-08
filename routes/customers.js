@@ -6,17 +6,17 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 
-
 router.get('/', auth, async (req, res) => {
-    let customers = await Customer.find().sort('name').select('-__v');
+    let customers = await Customer.find();
+    customers.sort((a, b) => a.name.localeCompare(b.name));
     res.send(customers);
 });
 
 router.get('/:id', [auth, validateObjectId], async (req, res) => {
-    let customer = await Customer.findById(req.params.id).select('-__v');
-    
+    const customer = await Customer.findById(req.params.id);
+
     if (!customer) return res.status(404).send('The customer with the given ID was not found.');
-    
+
     res.send(customer);
 });
 
@@ -24,8 +24,8 @@ router.post('/', auth, async (req, res) => {
     const { error } = validateCustomer(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let customer = new Customer(_.pick(req.body, ['name', 'phone', 'isGold']));
-    customer = await customer.save();
+    const customer = new Customer(_.pick(req.body, ['name', 'phone', 'isGold']));
+    await customer.save();
 
     res.send(_.pick(customer, ['_id', 'name', 'phone', 'isGold']));
 });
@@ -34,9 +34,7 @@ router.put('/:id', [auth, validateObjectId], async (req, res) => {
     const { error } = validateCustomer(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let customer = await Customer.findByIdAndUpdate(
-        req.params.id, _.pick(req.body, ['name', 'phone', 'isGold']), { new: true }
-    );
+    const customer = await Customer.findByIdAndUpdate(req.params.id, _.pick(req.body, ['name', 'phone', 'isGold']));
 
     if (!customer) return res.status(404).send('The customer with the given ID was not found.');
 
@@ -44,12 +42,11 @@ router.put('/:id', [auth, validateObjectId], async (req, res) => {
 });
 
 router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
-    let customer = await Customer.findByIdAndRemove(req.params.id);
+    const customer = await Customer.findByIdAndRemove(req.params.id);
 
     if (!customer) return res.status(404).send('The customer with the given ID was not found.');
 
     res.send(_.pick(customer, ['name', 'phone', 'isGold']));
 });
-
 
 module.exports = router;

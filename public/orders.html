@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders | StockFlow</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-badge">S</div>
+        <div>
+          <p class="eyebrow">Management Suite</p>
+          <h1>StockFlow</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a href="/">Dashboard</a>
+        <a href="/sales">Sales</a>
+        <a href="/orders">Orders</a>
+        <a href="/reports">Reports</a>
+      </nav>
+      <div class="user-panel">
+        <span id="userStatus">Not signed in</span>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel page-panel">
+        <h2>Order History</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const token = localStorage.getItem('stockToken') || '';
+      const userStatus = document.getElementById('userStatus');
+      const ordersTableBody = document.getElementById('ordersTableBody');
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!response.ok) throw new Error(data?.message || data || 'Request failed');
+        return data;
+      }
+
+      async function loadUser() {
+        if (!token) {
+          userStatus.textContent = 'Not signed in';
+          return;
+        }
+
+        try {
+          const user = await fetchJson('/api/users/me', { headers: { 'x-auth-token': token } });
+          userStatus.textContent = user ? `Signed in as ${user.name}` : 'Not signed in';
+        } catch (error) {
+          userStatus.textContent = 'Not signed in';
+        }
+      }
+
+      async function loadOrders() {
+        if (!token) {
+          ordersTableBody.innerHTML = '<tr><td colspan="4">Login to view orders.</td></tr>';
+          return;
+        }
+
+        try {
+          const orders = await fetchJson('/api/orders', { headers: { 'x-auth-token': token } });
+          ordersTableBody.innerHTML = orders.map((order) => `
+            <tr>
+              <td>${new Date(order.createdAt).toLocaleString()}</td>
+              <td>${order.customer ? order.customer.name : 'Walk-in'}</td>
+              <td>${(order.items || []).map((item) => `${item.name} (${item.quantity})`).join(', ') || 'No items'}</td>
+              <td>$${Number(order.totalAmount || 0).toFixed(2)}</td>
+            </tr>
+          `).join('');
+        } catch (error) {
+          ordersTableBody.innerHTML = '<tr><td colspan="4">Unable to load order history.</td></tr>';
+        }
+      }
+
+      loadUser();
+      loadOrders();
+    </script>
+  </body>
+</html>

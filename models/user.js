@@ -1,51 +1,53 @@
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 const config = require('config');
-const mongoose = require('mongoose');
+const db = require('../data/db');
 
-const Schema = mongoose.Schema;
-
-const userSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-        minlength: 5,
-        maxlength: 50
-    },
-    email: {
-        type: String,
-        required: true,
-        minlength: 5,
-        maxlength: 255,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true,
-        minlength: 5,
-        maxlength: 1024
-    },
-    isAdmin: {
-        type: Boolean,
-        default: false
+class User {
+    constructor(data = {}) {
+        this._id = data._id || null;
+        this.name = data.name || '';
+        this.email = data.email || '';
+        this.password = data.password || '';
+        this.isAdmin = Boolean(data.isAdmin);
     }
-});
 
+    generateAuthToken() {
+        return jwt.sign(
+            {
+                _id: this._id,
+                name: this.name,
+                email: this.email,
+                isAdmin: this.isAdmin
+            },
+            config.get('jwtPrivateKey')
+        );
+    }
 
-userSchema.methods.generateAuthToken = function () {
-    const token = jwt.sign(
-        {
-            _id: this._id,
-            name: this.name,
-            email: this.email,
-            isAdmin: this.isAdmin
-        }, 
-        config.get('jwtPrivateKey')
-    );
-    return token;
+    async save() {
+        if (!this._id) {
+            const created = await db.create('users', { name: this.name, email: this.email, password: this.password, isAdmin: this.isAdmin });
+            Object.assign(this, created);
+            return this;
+        }
+
+        const updated = await db.update('users', this._id, { name: this.name, email: this.email, password: this.password, isAdmin: this.isAdmin });
+        Object.assign(this, updated);
+        return this;
+    }
+
+    static async find() {
+        return await db.list('users');
+    }
+
+    static async findById(id) {
+        return await db.findById('users', id);
+    }
+
+    static async findOne(query = {}) {
+        return await db.findOne('users', query);
+    }
 }
-
-const User = mongoose.model('User', userSchema);
 
 function validateUser(user) {
     const schema = Joi.object({
@@ -67,6 +69,4 @@ function validateAuth(user) {
     return schema.validate(user);
 }
 
-exports.User = User;
-exports.validateUser = validateUser;
-exports.validateAuth = validateAuth;
+module.exports = { User, validateUser, validateAuth };

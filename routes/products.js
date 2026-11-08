@@ -6,14 +6,14 @@ const _ = require('lodash');
 const express = require('express');
 const router = express.Router();
 
-
 router.get('/', auth, async (req, res) => {
-    let products = await Product.find().sort('name').select('-__v');
+    let products = await Product.find();
+    products.sort((a, b) => a.name.localeCompare(b.name));
     res.send(products);
 });
 
 router.get('/:id', [auth, validateObjectId], async (req, res) => {
-    let product = await Product.findById(req.params.id).select('-__v');
+    const product = await Product.findById(req.params.id);
 
     if (!product) return res.status(404).send('The product with the given ID was not found.');
 
@@ -24,8 +24,8 @@ router.post('/', auth, async (req, res) => {
     const { error } = validateProduct(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let product = new Product(_.pick(req.body, ['name', 'price', 'numberInStock']));
-    product = await product.save();
+    const product = new Product(_.pick(req.body, ['name', 'price', 'numberInStock']));
+    await product.save();
 
     res.send(_.pick(product, ['_id', 'name', 'price', 'numberInStock']));
 });
@@ -34,9 +34,7 @@ router.put('/:id', [auth, validateObjectId], async (req, res) => {
     const { error } = validateProduct(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let product = await Product.findByIdAndUpdate(
-        req.params.id, _.pick(req.body, ['name', 'price', 'numberInStock']), { new: true }
-    );
+    const product = await Product.findByIdAndUpdate(req.params.id, _.pick(req.body, ['name', 'price', 'numberInStock']));
 
     if (!product) return res.status(404).send('The product with the given ID was not found.');
 
@@ -44,12 +42,11 @@ router.put('/:id', [auth, validateObjectId], async (req, res) => {
 });
 
 router.delete('/:id', [auth, admin, validateObjectId], async (req, res) => {
-    let product = await Product.findByIdAndRemove(req.params.id);
+    const product = await Product.findByIdAndRemove(req.params.id);
 
     if (!product) return res.status(404).send('The product with the given ID was not found.');
 
     res.send(_.pick(product, ['name', 'price', 'numberInStock']));
 });
-
 
 module.exports = router;

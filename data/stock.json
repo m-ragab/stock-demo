@@ -1,0 +1,73 @@
+{
+  "users": [],
+  "products": [
+    {
+      "name": "Keyboard",
+      "price": 20,
+      "numberInStock": 5,
+      "_id": "1794169293753-65b82a4c"
+    },
+    {
+      "name": "Mouse",
+      "price": 40,
+      "numberInStock": 6,
+      "_id": "1794169293843-a9b443a3"
+    },
+    {
+      "name": "Watch",
+      "price": 20,
+      "numberInStock": 3,
+      "_id": "1794169293962-0fe88f87"
+    },
+    {
+      "name": "Headfone",
+      "price": 200,
+      "numberInStock": 10,
+      "_id": "1794169294078-f89faabd"
+    },
+    {
+      "name": "USB Flash Drive",
+      "price": 50,
+      "numberInStock": 15,
+      "_id": "1794169294182-03d4f1e9"
+    },
+    {
+      "name": "Notebook Cooler",
+      "price": 150,
+      "numberInStock": 25,
+      "_id": "1794169294240-d8801e47"
+    },
+    {
+      "name": "Camera",
+      "price": 1500,
+      "numberInStock": 5,
+      "_id": "1794169294308-802b1ab6"
+    },
+    {
+      "name": "Printer",
+      "price": 2000,
+      "numberInStock": 25,
+      "_id": "1794169294386-36788add"
+    },
+    {
+      "name": "Tablet",
+      "price": 5000,
+      "numberInStock": 5,
+      "_id": "1794169294488-36e9b301"
+    },
+    {
+      "name": "LED TV",
+      "price": 1500,
+      "numberInStock": 35,
+      "_id": "1794169294656-c95db393"
+    },
+    {
+      "name": "Router",
+      "price": 150,
+      "numberInStock": 30,
+      "_id": "1794169294787-097465ed"
+    }
+  ],
+  "customers": [],
+  "orders": []
+}

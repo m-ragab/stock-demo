@@ -1,27 +1,18 @@
 ## Introduction
 
-This project is the backend of an imaginary electronics stock.
-The implementation is in Node.js.
+This is a stock management project for an electronics business. The application runs on Node.js and uses a local JSON file database, so it can be started and tested without MongoDB.
 
 ## Setup
 
-Follow all these steps exactly as explained below.
-
-### Install MongoDB
-
-To run this project, you need to install the latest version of MongoDB Community Edition first.
-
-https://docs.mongodb.com/manual/installation/
-
-Once you install MongoDB, make sure it's running.
+Follow these steps from the project folder.
 
 ### Install the Dependencies
 
-Next, from the project folder, install the dependencies:
+    npm install
 
-    npm i
+### Optional: Seed Demo Data
 
-### Populate the Database
+This creates the local data file and fills it with sample products.
 
     node seed.js
 
@@ -29,21 +20,32 @@ Next, from the project folder, install the dependencies:
 
     node app.js
 
-This will launch the Node server on port **3000**. If that port is busy, you can set a different point in **config/default.json**.
+This launches the application on port 3000 by default. If you need a different port, update the value in config/default.json.
 
-Open up your browser and head over to:
+## Run It in the Browser
 
-http://localhost:3000/api/products
+Open these URLs:
 
-You should see the list of products. That confirms that you have set up everything successfully.
+- http://localhost:3000/
+- http://localhost:3000/sales
+- http://localhost:3000/orders
+- http://localhost:3000/reports
 
+The API endpoints are available at:
 
-### Modifying data
+- http://localhost:3000/api/products
+- http://localhost:3000/api/customers
+- http://localhost:3000/api/orders
 
-To add or modify any of these products, you need to register for an new user. Use **Postman** to register:
+## Authentication
 
-http://localhost:3000/api/users/register
+Register a new user with a POST request to:
 
-This will give you an auth token to modify data. Provide the token in header **"x-auth-token"** during modifying data.
+    http://localhost:3000/api/users/register
 
-In order to delete data, you should be an **"admin"**. Which will be extracted from the token payload during deleting data, to make sure that you are authorized to do this.
+Use the returned token in the x-auth-token header when calling protected routes.
+
+## Notes
+
+- The project stores data in data/stock.json.
+- No external database service is required for local testing.

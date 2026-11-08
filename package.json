@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "node tests/startup.test.js"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,7 @@
     "joi-objectid": "^4.0.2",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
+    "lowdb": "^7.0.1",
     "mongoose": "^6.0.11",
     "morgan": "^1.10.0",
     "underscore": "^1.13.1",

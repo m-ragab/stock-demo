@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports | StockFlow</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-badge">S</div>
+        <div>
+          <p class="eyebrow">Management Suite</p>
+          <h1>StockFlow</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a href="/">Dashboard</a>
+        <a href="/sales">Sales</a>
+        <a href="/orders">Orders</a>
+        <a href="/reports">Reports</a>
+      </nav>
+      <div class="user-panel">
+        <span id="userStatus">Not signed in</span>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="stats-grid report-grid">
+        <div class="stat-card"><span>Products</span><strong id="productsCount">0</strong></div>
+        <div class="stat-card"><span>Customers</span><strong id="customersCount">0</strong></div>
+        <div class="stat-card"><span>Total Orders</span><strong id="totalOrders">0</strong></div>
+        <div class="stat-card"><span>Revenue</span><strong id="totalRevenue">$0</strong></div>
+        <div class="stat-card"><span>Inventory Value</span><strong id="inventoryValue">$0</strong></div>
+      </section>
+
+      <section class="panel page-panel">
+        <h2>Top products by sales</h2>
+        <ul id="topProductsList" class="report-list"></ul>
+      </section>
+
+      <section class="panel page-panel">
+        <h2>Monthly revenue</h2>
+        <ul id="monthlyRevenueList" class="report-list"></ul>
+      </section>
+    </main>
+
+    <script>
+      const token = localStorage.getItem('stockToken') || '';
+      const userStatus = document.getElementById('userStatus');
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!response.ok) throw new Error(data?.message || data || 'Request failed');
+        return data;
+      }
+
+      async function loadUser() {
+        if (!token) {
+          userStatus.textContent = 'Not signed in';
+          return;
+        }
+
+        try {
+          const user = await fetchJson('/api/users/me', { headers: { 'x-auth-token': token } });
+          userStatus.textContent = user ? `Signed in as ${user.name}` : 'Not signed in';
+        } catch (error) {
+          userStatus.textContent = 'Not signed in';
+        }
+      }
+
+      async function loadReports() {
+        if (!token) {
+          document.getElementById('productsCount').textContent = '0';
+          return;
+        }
+
+        const summary = await fetchJson('/api/reports/summary', { headers: { 'x-auth-token': token } });
+        document.getElementById('productsCount').textContent = summary.productsCount;
+        document.getElementById('customersCount').textContent = summary.customersCount;
+        document.getElementById('totalOrders').textContent = summary.totalOrders;
+        document.getElementById('totalRevenue').textContent = `$${Number(summary.totalRevenue || 0).toFixed(2)}`;
+        document.getElementById('inventoryValue').textContent = `$${Number(summary.inventoryValue || 0).toFixed(2)}`;
+
+        const topProductsList = document.getElementById('topProductsList');
+        topProductsList.innerHTML = (summary.topProducts || []).map((item) => `
+          <li>${item.name} — ${item.sold} sold</li>
+        `).join('') || '<li>No sales yet.</li>';
+
+        const monthlyRevenueList = document.getElementById('monthlyRevenueList');
+        monthlyRevenueList.innerHTML = (summary.monthlyRevenue || []).map((item) => `
+          <li>${item.month} — $${Number(item.revenue || 0).toFixed(2)}</li>
+        `).join('');
+      }
+
+      loadUser();
+      loadReports();
+    </script>
+  </body>
+</html>

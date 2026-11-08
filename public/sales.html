@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sales | StockFlow</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="brand-badge">S</div>
+        <div>
+          <p class="eyebrow">Management Suite</p>
+          <h1>StockFlow</h1>
+        </div>
+      </div>
+      <nav class="main-nav">
+        <a href="/">Dashboard</a>
+        <a href="/sales">Sales</a>
+        <a href="/orders">Orders</a>
+        <a href="/reports">Reports</a>
+      </nav>
+      <div class="user-panel">
+        <span id="userStatus">Not signed in</span>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section class="panel page-panel">
+        <h2>Process Sale</h2>
+        <form id="saleForm" class="stacked-form">
+          <label>
+            Customer
+            <select id="customerSelect"></select>
+          </label>
+          <label>
+            Product
+            <select id="productSelect"></select>
+          </label>
+          <label>
+            Quantity
+            <input type="number" id="quantityInput" value="1" min="1" required />
+          </label>
+          <button class="btn" type="submit">Process sale</button>
+        </form>
+      </section>
+
+      <section class="panel page-panel">
+        <h2>Sale Summary</h2>
+        <div id="saleResult" class="summary-box">
+          Select a product and quantity to create a sale.
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const token = localStorage.getItem('stockToken') || '';
+      const userStatus = document.getElementById('userStatus');
+      const productSelect = document.getElementById('productSelect');
+      const customerSelect = document.getElementById('customerSelect');
+      const saleResult = document.getElementById('saleResult');
+
+      async function fetchJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!response.ok) throw new Error(data?.message || data || 'Request failed');
+        return data;
+      }
+
+      async function loadUser() {
+        if (!token) {
+          userStatus.textContent = 'Not signed in';
+          return;
+        }
+
+        try {
+          const user = await fetchJson('/api/users/me', { headers: { 'x-auth-token': token } });
+          userStatus.textContent = user ? `Signed in as ${user.name}` : 'Not signed in';
+        } catch (error) {
+          userStatus.textContent = 'Not signed in';
+        }
+      }
+
+      async function loadProducts() {
+        if (!token) {
+          productSelect.innerHTML = '<option value="">Login to view products</option>';
+          return;
+        }
+
+        const products = await fetchJson('/api/products', { headers: { 'x-auth-token': token } });
+        productSelect.innerHTML = products.map((product) => `
+          <option value="${product._id}">${product.name} - $${Number(product.price).toFixed(2)} (${product.numberInStock} in stock)</option>
+        `).join('');
+      }
+
+      async function loadCustomers() {
+        if (!token) {
+          customerSelect.innerHTML = '<option value="">Login to view customers</option>';
+          return;
+        }
+
+        const customers = await fetchJson('/api/customers', { headers: { 'x-auth-token': token } });
+        customerSelect.innerHTML = customers.map((customer) => `
+          <option value="${customer._id}">${customer.name}</option>
+        `).join('');
+      }
+
+      document.getElementById('saleForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        if (!token) {
+          saleResult.textContent = 'Please log in before processing a sale.';
+          return;
+        }
+
+        const productId = productSelect.value;
+        const quantity = Number(document.getElementById('quantityInput').value);
+        const customerId = customerSelect.value;
+
+        try {
+          const response = await fetchJson('/api/orders', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': token
+            },
+            body: JSON.stringify({
+              customerId: customerId || null,
+              items: [{ productId, quantity }]
+            })
+          });
+
+          const total = Number(response.totalAmount || 0).toFixed(2);
+          saleResult.innerHTML = `
+            <strong>Sale completed.</strong><br>
+            Order ID: ${response._id}<br>
+            Total: $${total}<br>
+            Items sold: ${response.items.length}
+          `;
+          await loadProducts();
+        } catch (error) {
+          saleResult.textContent = error.message;
+        }
+      });
+
+      loadUser();
+      loadProducts();
+      loadCustomers();
+    </script>
+  </body>
+</html>
